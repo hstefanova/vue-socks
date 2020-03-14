@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Socks</title>
+
+	<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+	<div id="app">
+		<div class="product">
+			<div class="product-image">
+				<a :href="link">
+					<img :src="image" alt="">
+				</a>
+			</div>
+
+			<div class="product-info">
+				<h1>{{ title }}</h1>	
+
+				<p>{{ productDesc }}</p>
+
+				<p v-if="inStock > 10">In Stock Qty: {{ inStock }}</p>
+				<p v-else-if="inStock <= 10 && inStock > 0">Almost out of stock Qty: {{ inStock }}</p>
+				<p v-else :class="{ lineThrough: !inStock }">Out of Stock</p>
+
+				<ul>
+					<li v-for="(variant, index) in variants" :key="variant.variantId">
+						<div v-for="size in variant.variantSizes">{{size}}</div>
+					</li>
+				</ul>
+				
+				<!-- when we look objects it's a good practice to have a key value -->
+				<div v-for="(variant, index) in variants" 
+					:key="variant.variantId"
+					class="color-box"
+					:style="{ backgroundColor: variant.color }"
+					@mouseover="updateProduct(index)"
+					>
+				</div>
+
+				<p>Cart: {{ cart }}</p>
+				
+				<!-- When btn is disabled add a class -->
+				<div class="product-actions">
+					<button v-on:click="addItem"
+							:disabled="!inStock"
+							:class="{ disabledButton: !inStock }">Add </button>
+					<button v-on:click="removeItem">Remove </button>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+	<script>
+		var app = new Vue({
+			el: '#app',
+			data: {
+				brand: 'Nike',
+				productTitle: 'Sprint Socks',
+				productDesc: 'lorem cumque.',
+				// image: './green-socks.jpg',
+				selectedVariant: 0,
+				link: 'https://www.google.com/',
+				qty: 0,
+				// inStock: true,
+				cart: 0,
+				variants: [
+					{
+						color: 'green',
+						variantId: 12,
+						variantImg: './green-socks.jpg',
+						variantQty: 12,
+						variantSizes: ['XS', 'S', 'M', 'L', 'XL']
+					},
+					{
+						color: 'blue',
+						variantId: 13,
+						variantImg: './blue-socks.jpg',
+						variantQty: 1,
+						variantSizes: ['L', 'XL']
+					},
+					
+				],
+				styleButton: {
+					fontSize: '14px',
+					backgroundColor: 'black',
+					color: '#fff'
+				}
+			},
+			methods: {
+				addItem: function() {
+					 this.cart++;
+				},
+				removeItem: function() {
+					if(this.cart !== 0)
+						this.cart--;
+				},
+				updateProduct: function(index) {
+					this.selectedVariant = index;
+				}
+			},
+			computed: {
+				title: function() {
+					return this.brand + ' ' + this.productTitle
+				},
+				image: function() {
+					return this.variants[this.selectedVariant].variantImg
+				},
+				inStock: function() {
+					return this.variants[this.selectedVariant].variantQty
+				},
+				sizes: function() {
+					return this.variants[this.selectedVariant].variantSizes
+				}
+				
+			}
+		})
+	</script>
+</body>
+</html>
