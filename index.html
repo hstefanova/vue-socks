@@ -12,11 +12,98 @@
 		<div class="cart">Cart: {{ cart.length }}</div>
 
 		<product :premium="premium" :details="details" @add-item-to-cart="updateCart" @remove-item-from-cart="removeItem"></product>
+
+		
 	</div>
 
-	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+	<!-- <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> -->
+
+	<script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
 
 	<script>
+		Vue.component('product-review', {
+			template: `
+				<form class="review-form" @submit.prevent="onSubmit">
+					<p v-if="errors.length">
+						<strong>Please correct the following error(s):</strong>
+
+						<ul>
+							<li v-for="error in errors">{{ error }}</li>
+						</ul>
+					</p>
+
+			      <p>
+			        <label for="name">Name:</label>
+			        <input id="name" v-model="name" placeholder="name">
+			      </p>
+			      
+			      <p>
+			        <label for="review">Review:</label>      
+			        <textarea id="review" v-model="review"></textarea>
+			      </p>
+			      
+			      <p>
+			        <label for="rating">Rating:</label>
+			        <select id="rating" v-model.number="rating">
+			          <option>5</option>
+			          <option>4</option>
+			          <option>3</option>
+			          <option>2</option>
+			          <option>1</option>
+			        </select>
+			      </p>
+
+			      <p>Would you recommend this product?</p>
+
+			      <input type="radio" value="Yes" v-model="answerYes"> Yes </input>
+			      <input type="radio" value="No" v-model="answerNo"> No </input>
+			          
+			      <p>
+			        <input type="submit" value="Submit">  
+			      </p>    
+			    
+			    </form>
+			`,
+			data() {
+				return {
+					name: null,
+					review: null,
+					rating: null,
+					answerNo: null,
+					answerYes: null,
+					errors: []
+				}
+			},
+			methods: {
+				onSubmit: function() {
+					if(this.name && this.review && this.rating && (this.answerNo || this.answerYes)) {
+						let productReview = {
+							name: this.name,
+							review: this.review,
+							rating: this.rating,
+							answerYes: this.answerYes,
+							answerNo: this.answerNo
+						} 
+
+						this.$emit('review-submitted', productReview)
+
+						this.name = null
+						this.review = null
+						this.rating = null
+						this.answerNo = null
+						this.answerYes = null
+						this.errors = []
+					} else {
+						if(!this.name && !this.errors.includes("Name is required.")) this.errors.push("Name is required.")
+						if(!this.review && !this.errors.includes("Review is required.")) this.errors.push("Review is required.")
+						if(!this.rating && !this.errors.includes("Rating is required.")) this.errors.push("Rating is required.")
+						if(!this.answerYes && !this.answerNo && !this.errors.includes("Please let us know if you would recommend this product.")) this.errors.push("Please let us know if you would recommend this product.")
+					}
+
+				}
+			}
+		})
+
 		Vue.component('product', {
 			props: {
 				cart: {
@@ -75,6 +162,21 @@
 						<p>User premium: {{ true }}</p>
 
 						<p>Shipping: {{ shipping }}</p>
+
+						<h3>Reviews:</h3>
+						
+						<p v-if="!reviews.length">There are no reviews yet.</p>
+
+						<ul>
+							<li v-for="review in reviews">
+								<p>Name:  {{ review.name }}</p>
+								<p>Review: {{ review.review }}</p>
+								<p>Rating: {{ review.rating }}</p>
+								<p>Recommend: {{ review.answerNo }} {{  review.answerYes }}</p>
+							</li>
+						</ul>
+
+						<product-review @review-submitted="addProductReview"></product-review>
 					</div>
 				</div>
 			`,
@@ -88,6 +190,7 @@
 					link: 'https://www.google.com/',
 					qty: 0,
 					// inStock: true,
+					reviews: [],
 					variants: [
 						{
 							color: 'green',
@@ -120,6 +223,9 @@
 				},
 				updateProduct: function(index) {
 					this.selectedVariant = index;
+				},
+				addProductReview: function(productReview) {
+					this.reviews.push(productReview)
 				}
 			},
 			computed: {
